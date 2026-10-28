@@ -7,6 +7,7 @@
   <link rel="alternate icon" type="image/png" href="/favicon-32.png" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <meta name="theme-color" content="#f7f8fc" />
+  <script src="./theme.js"></script>
   <meta name="description" content="View NYP class timetables, lesson times and locations, and compare schedules to find common breaks. Use as a guest or save with an account." />
   <title>CommonGround — Find your free time together</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -31,6 +32,12 @@
       </nav>
       <div class="sidebar-label spacer-label">QUICK START</div>
       <button class="demo-nav" id="demoButton" type="button"><span class="demo-icon">✦</span><span><strong>Try example schedules</strong><small>Avery, Blake & Casey</small></span><span class="arrow-icon">↗</span></button>
+      <div class="appearance-panel">
+        <label for="desktopThemeSelect"><span aria-hidden="true">◐</span> Appearance</label>
+        <select id="desktopThemeSelect" data-theme-select aria-label="Appearance">
+          <option value="light">☀ Light</option><option value="dark">☾ Dark</option><option value="system">◐ System</option>
+        </select>
+      </div>
       <div class="sidebar-bottom"><div class="privacy-icon">♧</div><strong>Private by design</strong><p>Guest comparisons stay in your browser. Signed-in users can save extracted lessons securely and share them with selected groups.</p><div class="sidebar-foot">Made for campus life <span>✳</span></div></div>
     </aside>
 
@@ -39,7 +46,15 @@
         <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
         <span class="mobile-brand-name">common<span>ground</span><small>time, together.</small></span>
       </a>
-      <button type="button" class="mobile-header-avatar" id="mobileProfileButton" aria-label="Sign in or open profile settings">GU</button>
+      <div class="mobile-header-actions">
+        <label class="mobile-theme-control" for="mobileThemeSelect" title="Appearance">
+          <span class="mobile-theme-symbol" aria-hidden="true">◐</span>
+          <select id="mobileThemeSelect" data-theme-select aria-label="Appearance">
+            <option value="light">Light</option><option value="dark">Dark</option><option value="system">Auto</option>
+          </select>
+        </label>
+        <button type="button" class="mobile-header-avatar" id="mobileProfileButton" aria-label="Sign in or open profile settings">GU</button>
+      </div>
     </header>
 
     <main class="main-content" id="overview">
