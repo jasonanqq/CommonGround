@@ -134,3 +134,117 @@
 @media(max-width:580px){.profile-dialog .dialog-inner{padding:20px 17px}.avatar-preset-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .profile-shortcut[hidden]{display:none!important}
 @media(max-width:580px){.topbar-right .user-avatar{display:grid}}
+
+.mobile-header,.mobile-bottom-nav,.mobile-demo-button,.mobile-swipe-hint,.mobile-profile-signout{display:none}
+.hero-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.personal-day-view{padding:0 21px 21px}
+.personal-day-view[hidden]{display:none!important}
+.personal-day-tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;margin:0 0 18px}
+.personal-day-tab{border:1px solid #e6e5f3;border-radius:10px;padding:12px 4px;background:#fff;color:#717891;display:grid;gap:4px;justify-items:center;min-height:59px}
+.personal-day-tab span{font-size:12px;font-weight:800}
+.personal-day-tab small{font-size:9px;white-space:nowrap}
+.personal-day-tab.active{border-color:#8c7af0;background:#f0edff;color:#6352c8;box-shadow:inset 0 0 0 1px #9b8cf2}
+.personal-day-summary{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 12px}
+.personal-day-summary strong{font-family:'Plus Jakarta Sans',sans-serif;font-size:15px}
+.personal-day-summary span{color:#8c91a4;font-size:11px}
+.personal-day-classes{display:grid;gap:10px}
+.personal-day-card{display:flex;gap:15px;align-items:center;border:1px solid #e9e7f5;border-left:4px solid #7869e6;background:#fbfaff;border-radius:12px;padding:15px;min-width:0}
+.personal-day-card.online{background:#f6fdfa;border-color:#ccece0;border-left-color:#4dbb99}
+.personal-day-card-time{flex:0 0 90px;display:grid;gap:3px}
+.personal-day-card-time strong{font-size:12px;color:#302f57;white-space:nowrap}
+.personal-day-card-time span{font-size:10px;color:#9193aa}
+.personal-day-card-content{min-width:0;flex:1;display:grid;gap:4px}
+.personal-day-card-content strong{font-size:12px;font-weight:800;color:#2c3150;overflow-wrap:anywhere}
+.personal-day-card-content span{font-size:11px;color:#6660a3;overflow-wrap:anywhere}
+.personal-day-card-content small{font-size:10px;color:#8b8fa3;line-height:1.5;overflow-wrap:anywhere}
+.personal-day-tag{flex:none;font-size:10px;font-weight:800;border-radius:30px;background:#ebe7ff;color:#7160c8;padding:6px 9px}
+.personal-day-card.online .personal-day-tag{background:#e0f6ed;color:#23876a}
+.personal-day-empty{text-align:center;border:1px dashed #dcd9f2;border-radius:12px;background:#fbfaff;padding:30px 12px;color:#777c9a}
+.personal-day-empty>span{display:block;font-size:26px;color:#9686ff;margin-bottom:8px}
+.personal-day-empty strong{display:block;font-size:14px;color:#393d61}
+.personal-day-empty p{font-size:11px;margin:7px 0 0}
+
+@media(max-width:800px){
+  :root{scroll-padding-top:77px}
+  body{padding-bottom:calc(88px + env(safe-area-inset-bottom,0px));background:#f8f9fd}
+  .app-shell{display:block;min-height:0}
+  .sidebar{display:none}
+  .mobile-header{position:sticky;top:0;z-index:36;background:rgba(255,255,255,.97);border-bottom:1px solid #eeedf5;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 21px;height:67px;box-shadow:0 4px 20px #20214509;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+  .mobile-brand{display:flex;align-items:center;gap:12px;min-width:0}
+  .mobile-brand .brand-mark{width:33px;height:33px}
+  .mobile-brand-name{font-family:'Plus Jakarta Sans',sans-serif;font-size:19px;line-height:1.1;font-weight:800;letter-spacing:-.9px;color:#20243d}
+  .mobile-brand-name>span{color:#8777ec}
+  .mobile-brand-name small{display:block;margin-top:5px;color:#9294aa;font-family:'DM Sans',sans-serif;letter-spacing:1.35px;font-size:9px;font-weight:600}
+  .mobile-header-avatar{border:1px solid #e4dfff;border-radius:50%;width:42px;height:42px;flex:0 0 42px;display:grid;place-items:center;overflow:hidden;background:#eeeaff;color:#6051c3;font-weight:800;font-size:12px;padding:0;box-shadow:0 0 0 3px #f9f7ff}
+  .mobile-header-avatar img{width:100%;height:100%;display:block;object-fit:cover;border-radius:50%}
+  .topbar{display:none}
+  .content-inner{padding:23px 18px 22px}
+  .workspace-section{scroll-margin-top:83px}
+  .hero{min-height:0}
+  .hero-copy{padding:30px}
+  .hero-art{display:none}
+  .hero h1{font-size:clamp(27px,5.6vw,37px)}
+  .hero p{font-size:12px;max-width:420px;line-height:1.65}
+  .hero-actions{gap:9px}
+  .mobile-demo-button{display:inline-flex;min-height:42px;align-items:center;justify-content:center;padding:10px 13px;border:1px solid #d9d1ff;border-radius:10px;background:#ffffffba;color:#6251c8;font-size:12px;font-weight:800}
+  .mobile-demo-button:disabled{opacity:.5}
+  .mobile-bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:70;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:stretch;min-height:72px;padding:6px 7px calc(8px + env(safe-area-inset-bottom,0px));background:#fff;border-top:1px solid #e6e4f1;box-shadow:0 -7px 24px #1d22451a}
+  .mobile-tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-width:0;border:0;background:transparent;color:#88899f;font-size:10px;font-weight:700;line-height:1.1;letter-spacing:0;padding:7px 0;border-radius:12px;min-height:54px;cursor:pointer;position:relative}
+  .mobile-tab svg{width:22px;height:22px;flex:none;display:block}
+  .mobile-tab span{white-space:nowrap}
+  .mobile-tab.active{color:#6255d8;background:#f0edff}
+  .mobile-tab.active::before{content:"";position:absolute;top:3px;left:32%;right:32%;height:3px;border-radius:3px;background:#7668ea}
+  .mobile-tab:hover{color:#6255d8}
+  .mobile-tab:focus-visible{outline-offset:-2px}
+  .personal-day-view{padding:2px 15px 18px}
+  .personal-toolbar{gap:10px;padding:15px}
+  .personal-toolbar .personal-picker{flex:1 1 100%;min-width:0;max-width:none}
+  .personal-toolbar .personal-week{flex:1 1 120px;min-width:0}
+  .personal-view-switch{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;margin-left:0;gap:2px;padding:4px}
+  .personal-view-switch button{font-size:11px;min-height:40px;min-width:0;padding:8px 5px}
+  .personal-stats{gap:10px 16px}
+  .personal-stats .personal-week-label{margin-left:0}
+  .mobile-swipe-hint{display:flex;align-items:center;justify-content:space-between;position:sticky;left:0;font-size:10px;color:#777a9a;font-weight:700;padding:2px 3px 10px;width:min(100%,340px)}
+  .results-layout{display:flex;flex-direction:column}
+  .results-layout .matches-heading{order:1;margin-top:9px}
+  .results-layout .matches-grid{order:2}
+  .results-layout .board-card{order:3;margin-top:21px}
+  .result-actions .soft-button{font-size:11px}
+  .toast{bottom:calc(92px + env(safe-area-inset-bottom,0px))}
+  .mobile-profile-signout{display:block;width:100%;margin-top:15px;border:1px solid #eddfeb;background:#fff9fa;border-radius:10px;color:#ae4c68;font-size:12px;font-weight:800;padding:12px}
+}
+@media(max-width:580px){
+  .mobile-header{height:62px;padding:9px 16px}
+  .mobile-brand-name{font-size:17px}
+  .mobile-brand .brand-mark{width:30px;height:30px;transform:rotate(15deg) scale(.91)}
+  .content-inner{padding:16px 13px 25px}
+  .hero-copy{padding:26px 21px}
+  .hero h1{font-size:29px}
+  .hero p{font-size:12px}
+  .hero-cta,.mobile-demo-button{width:100%;min-height:44px}
+  .workspace-section{margin-top:29px}
+  .section-header{align-items:flex-start;flex-wrap:wrap}
+  .personal-day-tabs{gap:4px}
+  .personal-day-tab{min-height:59px;border-radius:8px;padding:8px 1px}
+  .personal-day-tab span{font-size:11px}
+  .personal-day-tab small{font-size:8px;white-space:normal;text-align:center;line-height:1.2}
+  .personal-day-summary{align-items:start;flex-direction:column;gap:4px}
+  .personal-day-card{gap:9px;padding:12px 10px;align-items:start}
+  .personal-day-card-time{flex:0 0 72px}
+  .personal-day-card-time strong{font-size:11px}
+  .personal-day-card-content strong{font-size:11px}
+  .personal-day-tag{font-size:9px;padding:5px 7px}
+  .personal-stats{padding:14px 13px}
+  .results-section .section-header{align-items:flex-start}
+  .result-actions{align-self:flex-start}
+  .result-actions .soft-button{font-size:11px;min-height:40px;padding:9px 10px}
+  .result-actions .soft-button span{font-size:14px;margin-left:5px}
+  .matches-heading{flex-wrap:wrap;gap:10px}
+  .matches-grid{grid-template-columns:1fr}
+}
+@media(max-width:360px){
+  .mobile-tab{font-size:9px}
+  .mobile-tab svg{width:20px;height:20px}
+  .mobile-bottom-nav{padding-left:3px;padding-right:3px}
+  .personal-day-tag{display:none}
+}

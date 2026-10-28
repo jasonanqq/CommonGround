@@ -18,7 +18,7 @@ const escapeHTML=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 let db=null,user=null,profile=null,groups=[],activeGroupId=null,library=[],schedules=[],members=[];
 let settings={week:8,min:60,mode:'between',onlineBusy:true,sort:'day'};
 try{settings={...settings,...JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}')};}catch{}
-let personalSelectedId=null,personalMode='grid';
+let personalSelectedId=null,personalMode=window.matchMedia('(max-width: 800px)').matches?'day':'grid',personalDay=0;
 let editingId=null,editable=[],selectedKey=null,toastTimer=null,uploadBusy=false,authMode='signin',sessionVersion=0,pendingJoinCode=null,recoveryActive=false;
 let pendingAvatar={kind:'initials',preset:'initials',file:null},avatarPreviewURL=null;
 const avatarURLCache=new Map();
@@ -69,6 +69,7 @@ function refreshHeaderProfile(){
   $('accountLabel').textContent=profileLabel(profile,user?.email||'Signed in');
   $('userAvatar').setAttribute('aria-label',`Edit profile for ${profileLabel(profile,'your account')}`);
   void paintAvatar($('userAvatar'),profile,avatarInitials(profileLabel(profile)));
+  void paintAvatar($('mobileProfileButton'),profile,avatarInitials(profileLabel(profile)));
 }
 function clearAvatarPreview(){if(avatarPreviewURL){URL.revokeObjectURL(avatarPreviewURL);avatarPreviewURL=null;}}
 function renderProfilePreview(){
@@ -153,7 +154,7 @@ async function handleSession(session){
   if (!session?.user){
     user=null;profile=null;groups=[];library=[];schedules=guestSchedules;members=[];activeGroupId=null;
     closeSignIn();$('logoutButton').hidden=true;$('loginButton').hidden=false;
-    $('accountLabel').textContent='Guest';$('userAvatar').textContent='GU';$('userAvatar').setAttribute('aria-label','Sign in to customise your profile');$('profileShortcut').hidden=true;render();return;
+    $('accountLabel').textContent='Guest';$('userAvatar').textContent='GU';$('mobileProfileButton').textContent='GU';$('userAvatar').setAttribute('aria-label','Sign in to customise your profile');$('profileShortcut').hidden=true;$('mobileProfileButton').setAttribute('aria-label','Sign in to customise your profile');render();return;
   }
   const newUser=session.user;
   user=newUser;
@@ -276,6 +277,7 @@ function renderRoster(){
   $('heroUpload').disabled=!!user&&!activeGroupId;
   $('manualButton').disabled=!!user&&!activeGroupId;
   $('demoButton').disabled=!!user&&!activeGroupId;
+  $('mobileDemoButton').disabled=!!user&&!activeGroupId;
 }
 function renderStats(windows){
   const total=windows.reduce((s,w)=>s+w.duration,0);
@@ -343,6 +345,7 @@ function renderPersonal(){
   $('personalMeta').textContent=schedule?`${schedule.fullName||schedule.name}${schedule.course?' · '+schedule.course:''} · ${schedule.source||'Manual timetable'}`:'Choose a timetable to view your classes';
   document.querySelectorAll('[data-personal-mode]').forEach(b=>{b.classList.toggle('chosen',b.dataset.personalMode===personalMode);b.setAttribute('aria-pressed',String(b.dataset.personalMode===personalMode));});
   $('personalCalendarWrap').hidden=personalMode!=='grid';
+  $('personalDayView').hidden=personalMode!=='day';
   $('personalList').hidden=personalMode!=='list';
   if(!schedule)return;
   const lessons=personalWeekEvents(schedule,+settings.week);
@@ -373,6 +376,20 @@ function renderPersonal(){
     if(!entries.length)return '';
     return `<div class="personal-list-day"><div class="personal-list-heading"><strong>${escapeHTML(day)}</strong><span>${entries.length} class${entries.length===1?'':'es'}</span></div>${entries.map(e=>`<div class="personal-list-event"><div class="personal-list-time">${escapeHTML(formatTime(e.start))}<span>${escapeHTML(formatTime(e.end))}</span></div><div class="personal-list-detail"><strong>${escapeHTML(e.code||'Class')}</strong>${e.moduleName?`<span>${escapeHTML(e.moduleName)}</span>`:''}<small>${escapeHTML(e.location|| (e.online?'Online':'Room not provided'))} · Weeks ${e.weekStart}–${e.weekEnd}</small></div><span class="personal-chip ${e.online?'online':''}">${e.online?'Online':'In-person'}</span></div>`).join('')}</div>`;
   }).join(''):'<div class="personal-no-classes">No classes for this teaching week. Choose another week to view the schedule.</div>';
+  renderPersonalDay(lessons);
+}
+
+
+function renderPersonalDay(lessons){
+  const tabs=$('personalDayTabs');
+  tabs.innerHTML=SHORT_DAYS.map((day,i)=>{
+    const count=lessons.filter(e=>e.day===i).length;
+    return `<button type="button" data-day="${i}" class="personal-day-tab ${i===personalDay?'active':''}" aria-pressed="${i===personalDay}"><span>${escapeHTML(day)}</span><small>${count?`${count} class${count===1?'':'es'}`:'Free'}</small></button>`;
+  }).join('');
+  tabs.querySelectorAll('[data-day]').forEach(button=>button.addEventListener('click',()=>{personalDay=+button.dataset.day;renderPersonalDay(lessons);}));
+  const entries=lessons.filter(e=>e.day===personalDay).sort((a,b)=>a.start-b.start||a.end-b.end);
+  $('personalDayClasses').innerHTML=`<div class="personal-day-summary"><strong>${escapeHTML(DAYS[personalDay])}</strong><span>${entries.length?`${entries.length} scheduled class${entries.length===1?'':'es'}`:'No classes scheduled'} · Week ${settings.week}</span></div>`+
+    (entries.length?entries.map(e=>`<article class="personal-day-card ${e.online?'online':''}"><div class="personal-day-card-time"><strong>${escapeHTML(formatTime(e.start))}</strong><span>to ${escapeHTML(formatTime(e.end))}</span></div><div class="personal-day-card-content"><strong>${escapeHTML(e.code||'Class')}</strong>${e.moduleName?`<span>${escapeHTML(e.moduleName)}</span>`:''}<small>${escapeHTML(e.location|| (e.online?'E-learning / online':'Room not provided'))}</small></div><span class="personal-day-tag">${e.online?'Online':'Campus'}</span></article>`).join(''):'<div class="personal-day-empty"><span aria-hidden="true">✦</span><strong>You’re free this day!</strong><p>No classes scheduled for this teaching week.</p></div>');
 }
 
 function render(){renderGroups();renderRoster();renderPersonal();const windows=allWindows();if(selectedKey&&!windows.some(w=>windowKey(w)===selectedKey))selectedKey=null;renderStats(windows);renderBoard(windows);renderMatches(windows);$('copyButton').disabled=!windows.length;$('csvButton').disabled=!windows.length;}
@@ -589,6 +606,36 @@ function showGroupSettings(){
   }));
 }
 
+
+function setMobileActive(section){
+  const id=section==='schedules'?'overview':section;
+  document.querySelectorAll('.mobile-tab[data-mobile-target]').forEach(tab=>{
+    const active=tab.dataset.mobileTarget===id;
+    tab.classList.toggle('active',active);
+    if(active)tab.setAttribute('aria-current','page');else tab.removeAttribute('aria-current');
+  });
+  document.querySelectorAll('.side-nav a.nav-link').forEach(tab=>tab.classList.toggle('active',tab.getAttribute('href')===`#${section}`));
+}
+function initialiseMobileNavigation(){
+  const ids=['overview','groups','schedules','my-timetable','results'];
+  const update=()=>{
+    const section=ids.reduce((active,id)=>{
+      const node=$(id);
+      return node && node.getBoundingClientRect().top<=210?id:active;
+    },'overview');
+    setMobileActive(section);
+  };
+  let scheduled=false;
+  window.addEventListener('scroll',()=>{
+    if(scheduled)return;
+    scheduled=true;
+    requestAnimationFrame(()=>{scheduled=false;update();});
+  },{passive:true});
+  window.addEventListener('hashchange',()=>setMobileActive(location.hash.slice(1)||'overview'));
+  document.querySelectorAll('.mobile-tab[data-mobile-target]').forEach(tab=>tab.addEventListener('click',()=>setMobileActive(tab.dataset.mobileTarget)));
+  setMobileActive(location.hash.slice(1)||'overview');
+  requestAnimationFrame(update);
+}
 function init(){
   for(let w=1;w<=17;w++)$('weekSelect').add(new Option(`Week ${w}`,String(w)));
   $('weekSelect').value=String(settings.week);
@@ -608,6 +655,7 @@ function init(){
   $('pdfInput').addEventListener('change',e=>importFiles(e.target.files));
   $('heroUpload').addEventListener('click',()=>$('pdfInput').click());
   $('demoButton').addEventListener('click',()=>safeAction(loadDemo));
+  $('mobileDemoButton').addEventListener('click',()=>safeAction(loadDemo));
   $('migrateButton').addEventListener('click',()=>safeAction(importLegacy));
   $('manualButton').addEventListener('click',()=>safeAction(createManual));
   $('loginButton').addEventListener('click',openSignIn);
@@ -632,6 +680,7 @@ function init(){
   $('saveEditor').addEventListener('click',saveEditor);
   $('addLesson').addEventListener('click',()=>{editable.push({id:newId(),day:0,start:9*60,end:10*60,code:'New lesson',weekStart:1,weekEnd:17,online:false,location:''});renderEditorRows();$('editorRows').lastElementChild?.scrollIntoView({block:'nearest',behavior:'smooth'})});
   document.querySelectorAll('.nav-link').forEach(a=>a.addEventListener('click',()=>{document.querySelectorAll('.nav-link').forEach(b=>b.classList.remove('active'));a.classList.add('active')}));
+  initialiseMobileNavigation();
   $('groupSelect').addEventListener('change',()=>safeAction(async()=>{activeGroupId=$('groupSelect').value;localStorage.setItem(`commonground_active_group_${user.id}`,activeGroupId);await reloadGroup();}));
   $('createGroupButton').addEventListener('click',showNewGroup);
   $('joinGroupButton').addEventListener('click',showJoinGroup);
@@ -641,6 +690,8 @@ function init(){
   $('closeGroupDialog').addEventListener('click',()=>$('groupDialog').close());
   $('groupDialog').addEventListener('click',e=>{if(e.target===$('groupDialog'))$('groupDialog').close()});
   $('userAvatar').addEventListener('click',openProfile);
+  $('mobileProfileButton').addEventListener('click',openProfile);
+  $('mobileProfileTab').addEventListener('click',openProfile);
   $('profileShortcut').addEventListener('click',openProfile);
   $('closeProfileDialog').addEventListener('click',closeProfile);
   $('profileCancel').addEventListener('click',closeProfile);
@@ -649,7 +700,9 @@ function init(){
   $('profileForm').addEventListener('submit',event=>{void saveProfile(event);});
   $('profileImageFile').addEventListener('change',e=>{const file=e.target.files?.[0];if(!file)return;try{validateAvatarFile(file);pendingAvatar={kind:'file',file,preset:'initials'};$('profileMessage').textContent='';renderProfilePreview();}catch(error){$('profileMessage').textContent=error.message;e.target.value='';}});
   $('profileRemovePhoto').addEventListener('click',()=>{pendingAvatar={kind:'preset',preset:'initials',file:null};$('profileImageFile').value='';renderProfilePreview();});
-  $('logoutButton').addEventListener('click',()=>safeAction(async()=>{must(await db.auth.signOut());await handleSession(null);notify('Signed out.');}));
+  const signOut=()=>safeAction(async()=>{if($('profileDialog').open)closeProfile();must(await db.auth.signOut());await handleSession(null);notify('Signed out.');});
+  $('logoutButton').addEventListener('click',signOut);
+  $('mobileSignOutButton').addEventListener('click',signOut);
   $('tabSignIn').addEventListener('click',()=>setAuthMode('signin'));
   $('tabSignUp').addEventListener('click',()=>setAuthMode('signup'));
   $('authForm').addEventListener('submit',handleAuthSubmit);

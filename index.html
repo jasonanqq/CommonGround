@@ -34,11 +34,19 @@
       <div class="sidebar-bottom"><div class="privacy-icon">♧</div><strong>Private by design</strong><p>Guest comparisons stay in your browser. Signed-in users can save extracted lessons securely and share them with selected groups.</p><div class="sidebar-foot">Made for campus life <span>✳</span></div></div>
     </aside>
 
+    <header class="mobile-header" aria-label="CommonGround mobile header">
+      <a href="#overview" class="mobile-brand" aria-label="CommonGround home">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        <span class="mobile-brand-name">common<span>ground</span><small>time, together.</small></span>
+      </a>
+      <button type="button" class="mobile-header-avatar" id="mobileProfileButton" aria-label="Sign in or open profile settings">GU</button>
+    </header>
+
     <main class="main-content" id="overview">
       <header class="topbar"><div class="crumb">Workspace <span>/</span> Schedule comparison</div><div class="topbar-right"><span class="online-dot"></span><span id="accountLabel">Guest</span><button id="loginButton" class="topbar-signout" type="button">Sign in / Save</button><button id="logoutButton" class="topbar-signout" type="button" hidden>Sign out</button><button class="user-avatar" id="userAvatar" type="button" aria-label="Open profile settings" title="Profile settings">GU</button></div></header>
       <div class="content-inner">
         <div class="hero">
-          <div class="hero-copy"><div class="eyebrow"><span class="eyebrow-star">✳</span> THE GROUP PLANNER</div><h1>Less planning.<br><em>More hanging out.</em></h1><p>Upload PDFs and find shared breaks instantly. No login needed to compare. Sign in only when you want to save your timetables or manage groups.</p><button class="hero-cta" id="heroUpload" type="button">Add a timetable <span>↗</span></button></div>
+          <div class="hero-copy"><div class="eyebrow"><span class="eyebrow-star">✳</span> THE GROUP PLANNER</div><h1>Less planning.<br><em>More hanging out.</em></h1><p>Upload PDFs and find shared breaks instantly. No login needed to compare. Sign in only when you want to save your timetables or manage groups.</p><div class="hero-actions"><button class="hero-cta" id="heroUpload" type="button">Add a timetable <span>↗</span></button><button class="mobile-demo-button" id="mobileDemoButton" type="button">Try sample schedules</button></div></div>
           <div class="hero-art" aria-hidden="true"><div class="hero-art-label">YOUR WEEK, SORTED <span>↗</span></div><div class="art-calendar"><div class="art-col"><i></i><b class="art-block a"></b><b class="art-block b"></b><b class="art-free"></b></div><div class="art-col"><i></i><b class="art-block c"></b><b class="art-free x"></b><b class="art-block d"></b></div><div class="art-col"><i></i><b class="art-block e"></b><b class="art-free y"></b><b class="art-block f"></b></div><div class="art-col"><i></i><b class="art-block a"></b><b class="art-block d"></b><b class="art-free"></b></div></div><div class="float-bubble">✦ <span>It's a match!</span></div><div class="float-duration">☕ &nbsp; 1h free together</div></div>
         </div>
 
@@ -68,8 +76,9 @@
               <label class="field-label personal-picker">Timetable<select id="personalSelect" aria-label="Choose whose timetable to view"></select></label>
               <label class="field-label personal-week">Teaching week<select id="personalWeekSelect" aria-label="Choose teaching week"></select></label>
               <div class="personal-view-switch" aria-label="Timetable display">
-                <button type="button" class="chosen" data-personal-mode="grid">Calendar</button>
-                <button type="button" data-personal-mode="list">Class list</button>
+                <button type="button" data-personal-mode="day" aria-pressed="false">Day view</button>
+                <button type="button" class="chosen" data-personal-mode="grid" aria-pressed="true">Week calendar</button>
+                <button type="button" data-personal-mode="list" aria-pressed="false">Class list</button>
               </div>
             </div>
             <div id="personalMeta" class="personal-meta" aria-live="polite"></div>
@@ -81,7 +90,8 @@
             </div>
             <div id="personalDisplay" hidden>
               <div id="personalStats" class="personal-stats"></div>
-              <div id="personalCalendarWrap" class="personal-scroll"><div id="personalCalendar" class="personal-calendar" role="region" aria-label="Weekly class timetable"></div></div>
+              <div id="personalDayView" class="personal-day-view" hidden><div id="personalDayTabs" class="personal-day-tabs" role="group" aria-label="Choose day to view"></div><div id="personalDayClasses" class="personal-day-classes"></div></div>
+              <div id="personalCalendarWrap" class="personal-scroll"><div class="mobile-swipe-hint">Swipe sideways to see the full week <span aria-hidden="true">↔</span></div><div id="personalCalendar" class="personal-calendar" role="region" aria-label="Weekly class timetable"></div></div>
               <div id="personalList" class="personal-list" hidden></div>
             </div>
           </div>
@@ -96,6 +106,7 @@
             <label class="toggle-label"><span>Count e-learning as busy <small>Switch off for flexible online lessons</small></span><input id="onlineToggle" type="checkbox" checked role="switch" /><i aria-hidden="true"></i></label>
           </div>
           <div id="summaryStats" class="stat-grid" aria-live="polite"></div>
+          <div class="results-layout">
           <div class="board-card">
             <div class="board-header"><div><h3>Weekly availability</h3><p id="boardCaption">Looking at everyone's schedule</p></div><div class="legend"><span><i class="legend-free"></i> Everyone free</span><span><i class="legend-busy"></i> Someone busy</span></div></div>
             <div class="board-scroll"><div id="weekBoard" class="week-board"></div></div>
@@ -103,6 +114,7 @@
           </div>
           <div class="matches-heading"><div><h3>Shared openings <span id="windowCount" class="count-bubble">0</span></h3><p>These are the easiest times to meet up.</p></div><label for="sortSelect" class="sort-label">Sort by <select id="sortSelect"><option value="day">Day & time</option><option value="longest">Longest first</option></select></label></div>
           <div id="matchesGrid" class="matches-grid" aria-live="polite"></div>
+          </div>
         </section>
         <footer class="footer">common<span>ground</span> <span class="footer-separator">•</span> Find time for the people who matter. <span class="footer-right">Built for NYP timetables · Secure group workspaces</span></footer>
       </div>
@@ -141,9 +153,17 @@
         <p class="profile-message" id="profileMessage" role="status"></p>
         <div class="simple-actions profile-save-actions"><button id="profileCancel" type="button" class="soft-button">Cancel</button><button id="profileSave" type="submit" class="primary-button">Save profile →</button></div>
       </form>
+      <button type="button" id="mobileSignOutButton" class="mobile-profile-signout">Sign out of CommonGround</button>
     </div>
   </dialog>
   <dialog id="groupDialog" class="simple-dialog" aria-label="Manage group"><div class="dialog-inner"><div class="simple-dialog-header"><h2 id="groupDialogTitle">Manage group</h2><button type="button" id="closeGroupDialog" class="icon-close" aria-label="Close">×</button></div><div id="groupDialogBody"></div></div></dialog>
+  <nav class="mobile-bottom-nav" aria-label="Mobile navigation">
+    <a class="mobile-tab active" data-mobile-target="overview" href="#overview" aria-label="Home" aria-current="page"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg><span>Home</span></a>
+    <a class="mobile-tab" data-mobile-target="my-timetable" href="#my-timetable" aria-label="My timetable"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18M8 14h3M8 17h7"/></svg><span>Timetable</span></a>
+    <a class="mobile-tab" data-mobile-target="results" href="#results" aria-label="Common breaks"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Breaks</span></a>
+    <a class="mobile-tab" data-mobile-target="groups" href="#groups" aria-label="Groups"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M17 11a3 3 0 1 0-1-6M17 15a5 5 0 0 1 4 5"/></svg><span>Groups</span></a>
+    <button type="button" class="mobile-tab" id="mobileProfileTab" aria-label="Profile settings"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg><span>Profile</span></button>
+  </nav>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
