@@ -1,4 +1,4 @@
-import {DAYS,SHORT_DAYS,START_DAY,END_DAY,formatTime,shortTime,duration,parseHHMM,newId,parseNypPages,commonWindows,occupiedRuns,overlapsCSV} from './lib.js';
+import {DAYS,SHORT_DAYS,START_DAY,END_DAY,formatTime,shortTime,duration,parseHHMM,newId,parseNypPages,commonWindows,occupiedRuns,overlapsCSV,personalWeekEvents} from './lib.js';
 import {examples} from './examples.js';
 import {createCloudClient,must,loadGroups,loadOwnTimetables,loadGroupTimetables,loadMembers,addTimetable,updateTimetable,setGroupTimetable,createGroup,joinGroup,rotateInvite} from './cloud.js';
 
@@ -17,6 +17,7 @@ const escapeHTML=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 let db=null,user=null,profile=null,groups=[],activeGroupId=null,library=[],schedules=[],members=[];
 let settings={week:8,min:60,mode:'between',onlineBusy:true,sort:'day'};
 try{settings={...settings,...JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}')};}catch{}
+let personalSelectedId=null,personalMode='grid';
 let editingId=null,editable=[],selectedKey=null,toastTimer=null,uploadBusy=false,authMode='signin',sessionVersion=0,pendingJoinCode=null,recoveryActive=false;
 const getGroup=()=>groups.find(g=>g.id===activeGroupId);
 const amOwner=()=>getGroup()?.owner_id===user?.id;
@@ -148,7 +149,7 @@ function renderRoster(){
     const initials=p.name.trim().split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase();
     const canRemove=!user||amOwner()||p.ownerId===user?.id;
     const canEdit=!user||p.ownerId===user?.id;
-    return `<div class="person-card">${canRemove?`<button title="Remove ${escapeHTML(p.name)} from this group" aria-label="Remove ${escapeHTML(p.name)} from this group" class="remove-person" data-remove="${escapeHTML(p.id)}" type="button">×</button>`:''}<div class="person-top"><div class="person-avatar" style="background:${bg};color:${fg}">${escapeHTML(initials)}</div><div style="min-width:0"><div class="person-name" title="${escapeHTML(p.fullName||p.name)}">${escapeHTML(p.name)}</div><div class="person-sub">${p.events.length} lesson blocks</div><div class="person-owner">${user?'by '+escapeHTML(memberName(p.ownerId)):'Guest · not saved'}</div></div></div><div class="person-card-footer"><div class="person-status" style="${p.events.length?'':'color:#c88a3e'}">${p.events.length?'Ready to compare':'Add lessons first'}</div>${canEdit?`<button class="edit-person" data-edit="${escapeHTML(p.id)}" type="button">Review ↗</button>`:'<span class="person-owner">Shared</span>'}</div></div>`;
+    return `<div class="person-card">${canRemove?`<button title="Remove ${escapeHTML(p.name)} from this group" aria-label="Remove ${escapeHTML(p.name)} from this group" class="remove-person" data-remove="${escapeHTML(p.id)}" type="button">×</button>`:''}<div class="person-top"><div class="person-avatar" style="background:${bg};color:${fg}">${escapeHTML(initials)}</div><div style="min-width:0"><div class="person-name" title="${escapeHTML(p.fullName||p.name)}">${escapeHTML(p.name)}</div><div class="person-sub">${p.events.length} lesson blocks</div><div class="person-owner">${user?'by '+escapeHTML(memberName(p.ownerId)):'Guest · not saved'}</div></div></div><div class="person-card-footer"><div class="person-status" style="${p.events.length?'':'color:#c88a3e'}">${p.events.length?'Ready to compare':'Add lessons first'}</div><span class="person-links"><button class="view-person" data-view="${escapeHTML(p.id)}" type="button">View classes</button>${canEdit?`<button class="edit-person" data-edit="${escapeHTML(p.id)}" type="button">Review ↗</button>`:''}</span></div></div>`;
   }).join('');
   const uploader=`<button id="dropCard" class="drop-card" type="button" ${user&&!activeGroupId?'disabled':''}><span class="plus-icon">+</span><strong>Add timetable PDF</strong><small>Click to browse or drop your file here</small></button>`;
   let extras='';
@@ -157,6 +158,7 @@ function renderRoster(){
   $('dropCard').addEventListener('click',()=>$('pdfInput').click());
   $('tryDemoInline')?.addEventListener('click',()=>safeAction(loadDemo));
   document.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openEditor(b.dataset.edit)));
+  document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{personalSelectedId=b.dataset.view;renderPersonal();$('my-timetable').scrollIntoView({behavior:'smooth',block:'start'});}));
   document.querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click',()=>safeAction(async()=>{
     const p=schedules.find(s=>s.id===b.dataset.remove);
     if(!p||!confirm(!user?`Remove ${p.name}'s timetable from this guest comparison?`:`Remove ${p.name}'s timetable from this group? It stays in its owner's library.`))return;
@@ -214,7 +216,65 @@ function renderMatches(windows){
     selectedKey=button.dataset.select;renderBoard(allWindows());renderMatches(allWindows());
   });
 }
-function render(){renderGroups();renderRoster();const windows=allWindows();if(selectedKey&&!windows.some(w=>windowKey(w)===selectedKey))selectedKey=null;renderStats(windows);renderBoard(windows);renderMatches(windows);$('copyButton').disabled=!windows.length;$('csvButton').disabled=!windows.length;}
+function personalOptions(){
+  const options=user?[...library]:[...guestSchedules];
+  if(user){
+    const found=new Set(options.map(s=>s.id));
+    for(const schedule of schedules)if(!found.has(schedule.id)){options.push(schedule);found.add(schedule.id);}
+  }
+  return options;
+}
+function personalLabel(schedule){
+  return `${schedule.fullName||schedule.name}${user && schedule.ownerId && schedule.ownerId!==user.id?' · Shared':''}`;
+}
+function renderPersonal(){
+  const options=personalOptions();
+  const select=$('personalSelect');
+  if(!options.some(s=>s.id===personalSelectedId))personalSelectedId=options.find(s=>!user||s.ownerId===user.id)?.id||options[0]?.id||null;
+  select.innerHTML=options.length?options.map(s=>`<option value="${escapeHTML(s.id)}" ${s.id===personalSelectedId?'selected':''}>${escapeHTML(personalLabel(s))}</option>`).join(''):'<option value="">No timetables yet</option>';
+  select.disabled=!options.length;
+  $('personalWeekSelect').value=String(settings.week);
+  const schedule=options.find(s=>s.id===personalSelectedId);
+  $('personalEmpty').hidden=!!schedule;
+  $('personalDisplay').hidden=!schedule;
+  const canEdit=!!schedule && (!user||schedule.ownerId===user.id);
+  $('personalEditButton').hidden=!canEdit;
+  $('personalMeta').textContent=schedule?`${schedule.fullName||schedule.name}${schedule.course?' · '+schedule.course:''} · ${schedule.source||'Manual timetable'}`:'Choose a timetable to view your classes';
+  document.querySelectorAll('[data-personal-mode]').forEach(b=>{b.classList.toggle('chosen',b.dataset.personalMode===personalMode);b.setAttribute('aria-pressed',String(b.dataset.personalMode===personalMode));});
+  $('personalCalendarWrap').hidden=personalMode!=='grid';
+  $('personalList').hidden=personalMode!=='list';
+  if(!schedule)return;
+  const lessons=personalWeekEvents(schedule,+settings.week);
+  const days=new Set(lessons.map(e=>e.day)).size;
+  const modules=new Set(lessons.map(e=>String(e.code||'').split(' ')[0])).size;
+  $('personalStats').innerHTML=`<div><strong>${lessons.length}</strong><span>Class blocks</span></div><div><strong>${days}</strong><span>Days with classes</span></div><div><strong>${modules}</strong><span>Modules</span></div><div class="personal-week-label">Week ${settings.week} <span>· Mon–Sat, 8 AM–6 PM</span></div>`;
+  const total=END_DAY-START_DAY,position=minute=>((minute-START_DAY)/total*100);
+  const rail=`<div class="personal-time-rail">${Array.from({length:11},(_,i)=>`<span style="top:${i*10}%">${String(i+8).padStart(2,'0')}:00</span>`).join('')}</div>`;
+  const headings='<div class="personal-corner"></div>'+SHORT_DAYS.map(d=>`<div class="personal-day-heading">${d}</div>`).join('');
+  const cols=DAYS.map((_,day)=>{
+    const groups=lessons.filter(e=>e.day===day).sort((a,b)=>a.start-b.start||a.end-b.end);
+    const blocks=groups.map((e,i)=>{
+      const intersecting=groups.filter(other=>other.start<e.end&&other.end>e.start);
+      const col=intersecting.findIndex(other=>other===e);
+      const laneCount=intersecting.length;
+      const room=(e.location||'').trim();
+      const module=(e.moduleName||'').trim();
+      const from=Math.max(START_DAY,e.start),to=Math.min(END_DAY,e.end);
+      if(to<=from)return '';
+      const details=[e.code,module,room,e.online?'Online':'On campus',`Week ${e.weekStart}–${e.weekEnd}`,`${formatTime(e.start)}–${formatTime(e.end)}`].filter(Boolean).join(' · ');
+      return `<div class="personal-class ${e.online?'is-online':''}" style="top:${position(from)}%;height:${position(to)-position(from)}%;left:calc(${col} * (100% / ${laneCount}) + 3px);width:calc(100% / ${laneCount} - 6px)" title="${escapeHTML(details)}" tabindex="0"><strong>${escapeHTML(e.code||'Class')}</strong>${module?`<span>${escapeHTML(module)}</span>`:''}<small>${escapeHTML(formatTime(e.start))}–${escapeHTML(formatTime(e.end))}</small><em>${escapeHTML(room|| (e.online?'Online':'Room not provided'))}</em></div>`;
+    }).join('');
+    return `<div class="personal-day-column">${blocks}</div>`;
+  }).join('');
+  $('personalCalendar').innerHTML=headings+rail+cols;
+  $('personalList').innerHTML=lessons.length?DAYS.map((day,i)=>{
+    const entries=lessons.filter(e=>e.day===i);
+    if(!entries.length)return '';
+    return `<div class="personal-list-day"><div class="personal-list-heading"><strong>${escapeHTML(day)}</strong><span>${entries.length} class${entries.length===1?'':'es'}</span></div>${entries.map(e=>`<div class="personal-list-event"><div class="personal-list-time">${escapeHTML(formatTime(e.start))}<span>${escapeHTML(formatTime(e.end))}</span></div><div class="personal-list-detail"><strong>${escapeHTML(e.code||'Class')}</strong>${e.moduleName?`<span>${escapeHTML(e.moduleName)}</span>`:''}<small>${escapeHTML(e.location|| (e.online?'Online':'Room not provided'))} · Weeks ${e.weekStart}–${e.weekEnd}</small></div><span class="personal-chip ${e.online?'online':''}">${e.online?'Online':'In-person'}</span></div>`).join('')}</div>`;
+  }).join(''):'<div class="personal-no-classes">No classes for this teaching week. Choose another week to view the schedule.</div>';
+}
+
+function render(){renderGroups();renderRoster();renderPersonal();const windows=allWindows();if(selectedKey&&!windows.some(w=>windowKey(w)===selectedKey))selectedKey=null;renderStats(windows);renderBoard(windows);renderMatches(windows);$('copyButton').disabled=!windows.length;$('csvButton').disabled=!windows.length;}
 
 function readLegacy(){
   try {const rows=JSON.parse(localStorage.getItem('commonground_schedules_v1')||'[]');return Array.isArray(rows)?rows.filter(s=>s?.name&&Array.isArray(s.events)):[];}catch{return [];}
@@ -313,7 +373,7 @@ function openEditor(id){
 function renderEditorRows(){
   $('lessonCount').textContent=`${editable.length} lesson block${editable.length===1?'':'s'}`;
   const dayOptions=(val)=>DAYS.map((d,i)=>`<option value="${i}" ${val===i?'selected':''}>${SHORT_DAYS[i]}</option>`).join('');
-  $('editorRows').innerHTML=editable.map((e,i)=>`<tr data-i="${i}"><td><select data-f="day">${dayOptions(+e.day)}</select></td><td><input class="time-input" type="time" value="${shortTime(e.start)}" data-f="start" step="600"></td><td><input class="time-input" type="time" value="${shortTime(e.end)}" data-f="end" step="600"></td><td><input class="code-input" maxlength="80" value="${escapeHTML(e.code)}" data-f="code" required></td><td><input class="week-input" type="number" min="1" max="52" value="${e.weekStart}" data-f="weekStart"></td><td><input class="week-input" type="number" min="1" max="52" value="${e.weekEnd}" data-f="weekEnd"></td><td><input class="online-box" type="checkbox" data-f="online" ${e.online?'checked':''}></td><td><button class="trash" type="button" data-delete="${i}" title="Delete lesson">×</button></td></tr>`).join('');
+  $('editorRows').innerHTML=editable.map((e,i)=>`<tr data-i="${i}"><td><select data-f="day">${dayOptions(+e.day)}</select></td><td><input class="time-input" type="time" value="${shortTime(e.start)}" data-f="start" step="600"></td><td><input class="time-input" type="time" value="${shortTime(e.end)}" data-f="end" step="600"></td><td><input class="code-input" maxlength="80" value="${escapeHTML(e.code)}" data-f="code" required></td><td><input class="location-input" maxlength="100" value="${escapeHTML(e.location||'')}" data-f="location" placeholder="e.g. L.535 SIT"></td><td><input class="week-input" type="number" min="1" max="52" value="${e.weekStart}" data-f="weekStart"></td><td><input class="week-input" type="number" min="1" max="52" value="${e.weekEnd}" data-f="weekEnd"></td><td><input class="online-box" type="checkbox" data-f="online" ${e.online?'checked':''}></td><td><button class="trash" type="button" data-delete="${i}" title="Delete lesson">×</button></td></tr>`).join('');
   document.querySelectorAll('[data-delete]').forEach(btn=>btn.addEventListener('click',()=>{editable.splice(+btn.dataset.delete,1);renderEditorRows()}));
 }
 async function saveEditor(){
@@ -430,12 +490,19 @@ function showGroupSettings(){
 function init(){
   for(let w=1;w<=17;w++)$('weekSelect').add(new Option(`Week ${w}`,String(w)));
   $('weekSelect').value=String(settings.week);
+  for(let w=1;w<=17;w++)$('personalWeekSelect').add(new Option(`Week ${w}`,String(w)));
+  $('personalWeekSelect').value=String(settings.week);
   $('minSelect').value=String(settings.min);$('modeSelect').value=settings.mode;
   $('onlineToggle').checked=Boolean(settings.onlineBusy);$('sortSelect').value=settings.sort;
   for(const [id,key,fn] of [['weekSelect','week',x=>+x],['minSelect','min',x=>+x],['modeSelect','mode',String],['sortSelect','sort',String]]){
     $(id).addEventListener('change',e=>{settings[key]=fn(e.target.value);persistSettings();render()});
   }
   $('onlineToggle').addEventListener('change',e=>{settings.onlineBusy=e.target.checked;persistSettings();render()});
+  $('personalSelect').addEventListener('change',e=>{personalSelectedId=e.target.value;renderPersonal();});
+  $('personalWeekSelect').addEventListener('change',e=>{settings.week=+e.target.value;$('weekSelect').value=String(settings.week);persistSettings();render();});
+  document.querySelectorAll('[data-personal-mode]').forEach(b=>b.addEventListener('click',()=>{personalMode=b.dataset.personalMode;renderPersonal();}));
+  $('personalEditButton').addEventListener('click',()=>{if(personalSelectedId)openEditor(personalSelectedId);});
+  $('personalUploadButton').addEventListener('click',()=>$('pdfInput').click());
   $('pdfInput').addEventListener('change',e=>importFiles(e.target.files));
   $('heroUpload').addEventListener('click',()=>$('pdfInput').click());
   $('demoButton').addEventListener('click',()=>safeAction(loadDemo));
@@ -461,7 +528,7 @@ function init(){
   $('cancelEditor').addEventListener('click',()=>$('editorDialog').close());
   $('editorDialog').addEventListener('click',e=>{if(e.target===$('editorDialog'))$('editorDialog').close()});
   $('saveEditor').addEventListener('click',saveEditor);
-  $('addLesson').addEventListener('click',()=>{editable.push({id:newId(),day:0,start:9*60,end:10*60,code:'New lesson',weekStart:1,weekEnd:17,online:false});renderEditorRows();$('editorRows').lastElementChild?.scrollIntoView({block:'nearest',behavior:'smooth'})});
+  $('addLesson').addEventListener('click',()=>{editable.push({id:newId(),day:0,start:9*60,end:10*60,code:'New lesson',weekStart:1,weekEnd:17,online:false,location:''});renderEditorRows();$('editorRows').lastElementChild?.scrollIntoView({block:'nearest',behavior:'smooth'})});
   document.querySelectorAll('.nav-link').forEach(a=>a.addEventListener('click',()=>{document.querySelectorAll('.nav-link').forEach(b=>b.classList.remove('active'));a.classList.add('active')}));
   $('groupSelect').addEventListener('change',()=>safeAction(async()=>{activeGroupId=$('groupSelect').value;localStorage.setItem(`commonground_active_group_${user.id}`,activeGroupId);await reloadGroup();}));
   $('createGroupButton').addEventListener('click',showNewGroup);

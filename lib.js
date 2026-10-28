@@ -92,32 +92,36 @@ export function parseNypPages(pages, filename='Uploaded timetable.pdf') {
     }).map(([,tokens])=>tokens.sort((a,b)=>a.x-b.x).map(t=>t.str).join(' '));
     let weekStart=1,weekEnd=17;
     const found=[];
-    for (const line of lines) {
+    for (const [lineIndex,line] of lines.entries()) {
       weekRE.lastIndex=0;
       for (const m of line.matchAll(weekRE)) {weekStart=+m[1];weekEnd=+m[2];}
       courseRE.lastIndex=0;
       for (const m of line.matchAll(courseRE)) {
-        found.push({code:`${m[1]} ${m[2]}`,weekStart,weekEnd});
+        const following=(lines[lineIndex+1]||'').trim();
+        const moduleName=/^[A-Z]{2,10}$/.test(following) && !['DCL','SIT','SAS'].includes(following) ? following : '';
+        found.push({code:`${m[1]} ${m[2]}`,weekStart,weekEnd,moduleName});
       }
     }
     if (!found.length) continue;
     const allText=lines.join(' ').toUpperCase();
     const online=allText.includes('ELEARNING') || allText.includes('LEARN FROM HOME');
+    const locationMatch=allText.match(/\b(?:L\.\d{3}\s+[A-Z]{2,8}|P\.\d{3}\s+[A-Z]{2,8}|LT[A-Z]-\d+\s+[A-Z]{2,8}|ELEARNING\s+[A-Z]{2,8}|LEARN\s+FROM\s+HOME|SAMPLE\s+ROOM)\b/);
+    const location=locationMatch?.[0]||'';
     const unique=[];
     for (const f of found) {
       if(!unique.some(u=>u.code===f.code && u.weekStart===f.weekStart && u.weekEnd===f.weekEnd)) unique.push(f);
     }
     for (const f of unique) {
       if (unique.some(u=>u!==f && u.code===f.code && u.weekStart<=f.weekStart && u.weekEnd>=f.weekEnd)) continue;
-      events.push({...f,day,start,end:start+60,online});
+      events.push({...f,day,start,end:start+60,online,location});
     }
   }
   if (!events.length) throw new Error('I found the timetable grid, but could not recognize any lesson codes. You can add lessons manually, or check that you uploaded an NYP timetable.');
   const sorted=events.sort((a,b)=>a.day-b.day || a.start-b.start || a.code.localeCompare(b.code));
   const merged=[];
   for (const ev of sorted) {
-    const previous=merged.find(e=>e.day===ev.day && e.end===ev.start && e.code===ev.code && e.weekStart===ev.weekStart && e.weekEnd===ev.weekEnd && e.online===ev.online);
-    if (previous) previous.end=ev.end;
+    const previous=merged.find(e=>e.day===ev.day && e.end===ev.start && e.code===ev.code && e.weekStart===ev.weekStart && e.weekEnd===ev.weekEnd && e.online===ev.online && ((e.location||'')===(ev.location||'') || !e.location || !ev.location));
+    if (previous) {previous.end=ev.end;previous.location ||= ev.location;previous.moduleName ||= ev.moduleName;}
     else merged.push({...ev,id:newId()});
   }
   return {
@@ -129,6 +133,12 @@ export function parseNypPages(pages, filename='Uploaded timetable.pdf') {
   };
 }
 
+export function personalWeekEvents(schedule,week) {
+  const selected=Number(week);
+  if (!schedule || !Array.isArray(schedule.events) || !Number.isFinite(selected)) return [];
+  return schedule.events.filter(e=>Number(e.weekStart)<=selected && Number(e.weekEnd)>=selected)
+    .sort((a,b)=>a.day-b.day||a.start-b.start||String(a.code).localeCompare(String(b.code)));
+}
 export function activeEvents(schedule,week,onlineBusy=true) {
   return schedule.events.filter(e=>e.weekStart<=week && e.weekEnd>=week && (onlineBusy || !e.online));
 }

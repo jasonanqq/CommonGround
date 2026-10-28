@@ -1,9 +1,9 @@
 {
   "name": "commonground-groups",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "private": true,
   "type": "module",
-  "description": "Guest-first NYP timetable matcher with optional Supabase accounts, cloud library, and group comparisons, deployable to Vercel.",
+  "description": "Guest-first timetable viewer and shared-break matcher with optional Supabase accounts, libraries and group comparisons.",
   "scripts": {
     "dev": "python3 -m http.server 5500",
     "test": "node --test tests/*.test.js"

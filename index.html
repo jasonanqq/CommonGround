@@ -7,7 +7,7 @@
   <link rel="alternate icon" type="image/png" href="/favicon-32.png" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <meta name="theme-color" content="#f7f8fc" />
-  <meta name="description" content="Compare NYP timetables and discover the breaks everyone shares. Upload and securely save schedules, organize groups, and compare common breaks." />
+  <meta name="description" content="View NYP class timetables, lesson times and locations, and compare schedules to find common breaks. Use as a guest or save with an account." />
   <title>CommonGround — Find your free time together</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -26,6 +26,7 @@
         <a href="#overview" class="nav-link active"><span class="nav-symbol">▦</span> Overview</a>
         <a href="#groups" class="nav-link"><span class="nav-symbol">♧</span> Groups</a>
         <a href="#schedules" class="nav-link"><span class="nav-symbol">▣</span> Timetables <span id="navCount" class="nav-count">0</span></a>
+        <a href="#my-timetable" class="nav-link"><span class="nav-symbol">▤</span> My timetable</a>
         <a href="#results" class="nav-link"><span class="nav-symbol">◷</span> Common breaks</a>
       </nav>
       <div class="sidebar-label spacer-label">QUICK START</div>
@@ -57,8 +58,37 @@
           <div id="uploadNotice" class="notice" role="status" hidden></div>
         </section>
 
+        <section class="workspace-section personal-section" id="my-timetable">
+          <div class="section-header">
+            <div><div class="kicker">03 / YOUR WEEK AT A GLANCE</div><h2>My timetable <span class="small-dot">✳</span></h2><p>See your classes, teaching weeks, rooms and online sessions in one place.</p></div>
+            <button type="button" class="soft-button" id="personalEditButton" hidden>Edit lessons ↗</button>
+          </div>
+          <div class="personal-panel">
+            <div class="personal-toolbar">
+              <label class="field-label personal-picker">Timetable<select id="personalSelect" aria-label="Choose whose timetable to view"></select></label>
+              <label class="field-label personal-week">Teaching week<select id="personalWeekSelect" aria-label="Choose teaching week"></select></label>
+              <div class="personal-view-switch" aria-label="Timetable display">
+                <button type="button" class="chosen" data-personal-mode="grid">Calendar</button>
+                <button type="button" data-personal-mode="list">Class list</button>
+              </div>
+            </div>
+            <div id="personalMeta" class="personal-meta" aria-live="polite"></div>
+            <div id="personalEmpty" class="personal-empty" hidden>
+              <span class="personal-empty-icon">▤</span>
+              <strong>No timetable selected yet</strong>
+              <p>Upload an NYP timetable PDF, add one manually, or load the fictional examples to see your weekly classes.</p>
+              <button type="button" class="primary-button" id="personalUploadButton">Add timetable ↗</button>
+            </div>
+            <div id="personalDisplay" hidden>
+              <div id="personalStats" class="personal-stats"></div>
+              <div id="personalCalendarWrap" class="personal-scroll"><div id="personalCalendar" class="personal-calendar" role="region" aria-label="Weekly class timetable"></div></div>
+              <div id="personalList" class="personal-list" hidden></div>
+            </div>
+          </div>
+        </section>
+
         <section class="workspace-section results-section" id="results">
-          <div class="section-header"><div><div class="kicker">03 / COMPARE</div><h2>Find your common ground</h2><p>Only time when <strong>everyone</strong> is available counts as a shared break.</p></div><div class="result-actions"><button type="button" class="soft-button" id="copyButton">Copy results <span>⧉</span></button><button type="button" class="soft-button" id="csvButton">Export CSV <span>↓</span></button></div></div>
+          <div class="section-header"><div><div class="kicker">04 / COMPARE</div><h2>Find your common ground</h2><p>Only time when <strong>everyone</strong> is available counts as a shared break.</p></div><div class="result-actions"><button type="button" class="soft-button" id="copyButton">Copy results <span>⧉</span></button><button type="button" class="soft-button" id="csvButton">Export CSV <span>↓</span></button></div></div>
           <div class="filter-bar">
             <label class="field-label" for="weekSelect">Teaching week <select id="weekSelect"></select></label>
             <label class="field-label" for="minSelect">Minimum break <select id="minSelect"><option value="30">30 minutes</option><option value="60" selected>1 hour</option><option value="90">1.5 hours</option><option value="120">2 hours</option><option value="180">3 hours</option></select></label>
@@ -79,7 +109,7 @@
     </main>
   </div>
 
-  <dialog id="editorDialog" class="editor-dialog" aria-label="Edit timetable"><div class="dialog-inner"><div class="dialog-header"><div><div class="kicker">REVIEW & CORRECT</div><h2 id="editHeading">Edit lessons</h2><p>PDF extraction is not perfect. You can correct, add, or remove any lesson here.</p></div><button id="closeEditor" class="icon-close" type="button" aria-label="Close editor">×</button></div><div class="edit-meta"><label>Person's name <input id="editName" maxlength="48" /></label><span id="lessonCount" class="edit-lesson-count"></span></div><div class="editor-table-wrap"><table class="editor-table"><thead><tr><th>Day</th><th>Start</th><th>End</th><th>Class</th><th>From wk</th><th>To wk</th><th>Online</th><th></th></tr></thead><tbody id="editorRows"></tbody></table></div><div class="dialog-actions"><button id="addLesson" type="button" class="soft-button">+ Add lesson</button><div><button id="cancelEditor" class="soft-button" type="button">Cancel</button><button id="saveEditor" class="primary-button" type="button">Save changes <span>✓</span></button></div></div></div></dialog>
+  <dialog id="editorDialog" class="editor-dialog" aria-label="Edit timetable"><div class="dialog-inner"><div class="dialog-header"><div><div class="kicker">REVIEW & CORRECT</div><h2 id="editHeading">Edit lessons</h2><p>PDF extraction is not perfect. You can correct, add, or remove any lesson here.</p></div><button id="closeEditor" class="icon-close" type="button" aria-label="Close editor">×</button></div><div class="edit-meta"><label>Person's name <input id="editName" maxlength="48" /></label><span id="lessonCount" class="edit-lesson-count"></span></div><div class="editor-table-wrap"><table class="editor-table"><thead><tr><th>Day</th><th>Start</th><th>End</th><th>Class</th><th>Room / location</th><th>From wk</th><th>To wk</th><th>Online</th><th></th></tr></thead><tbody id="editorRows"></tbody></table></div><div class="dialog-actions"><button id="addLesson" type="button" class="soft-button">+ Add lesson</button><div><button id="cancelEditor" class="soft-button" type="button">Cancel</button><button id="saveEditor" class="primary-button" type="button">Save changes <span>✓</span></button></div></div></div></dialog>
 
   <div class="auth-screen" id="authScreen" aria-hidden="true" hidden>
     <div class="auth-panel"><button id="closeAuthButton" type="button" class="auth-dismiss" aria-label="Continue as guest">×</button>

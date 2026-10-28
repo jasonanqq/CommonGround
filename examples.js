@@ -14,7 +14,8 @@ export const examples = [
         "code": "CS1101 LEC01",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": true
+        "online": true,
+        "location": "ELEARNING SIT"
       },
       {
         "id": "demo-avery-0-600-CS1102LAB01",
@@ -24,7 +25,8 @@ export const examples = [
         "code": "CS1102 LAB01",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-avery-0-840-CM1299TUT01",
@@ -34,7 +36,8 @@ export const examples = [
         "code": "CM1299 TUT01",
         "weekStart": 6,
         "weekEnd": 7,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-avery-0-900-CM1201TUT01",
@@ -44,7 +47,8 @@ export const examples = [
         "code": "CM1201 TUT01",
         "weekStart": 2,
         "weekEnd": 16,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-avery-1-540-CS1103LAB02",
@@ -54,7 +58,8 @@ export const examples = [
         "code": "CS1103 LAB02",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-avery-1-840-MA1201TUT02",
@@ -64,7 +69,8 @@ export const examples = [
         "code": "MA1201 TUT02",
         "weekStart": 2,
         "weekEnd": 16,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-avery-2-600-CS1104LEC01",
@@ -74,7 +80,8 @@ export const examples = [
         "code": "CS1104 LEC01",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": true
+        "online": true,
+        "location": "ELEARNING SIT"
       },
       {
         "id": "demo-avery-2-780-CS1104LAB01",
@@ -84,7 +91,8 @@ export const examples = [
         "code": "CS1104 LAB01",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-avery-3-480-CS1102LEC01",
@@ -94,7 +102,8 @@ export const examples = [
         "code": "CS1102 LEC01",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": true
+        "online": true,
+        "location": "ELEARNING SIT"
       },
       {
         "id": "demo-avery-3-660-CS1101LAB03",
@@ -104,7 +113,8 @@ export const examples = [
         "code": "CS1101 LAB03",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-avery-3-960-CM1202TUT01",
@@ -114,7 +124,8 @@ export const examples = [
         "code": "CM1202 TUT01",
         "weekStart": 2,
         "weekEnd": 16,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-avery-4-540-CS1105LAB01",
@@ -124,7 +135,8 @@ export const examples = [
         "code": "CS1105 LAB01",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-avery-4-840-CS1105LEC01",
@@ -134,7 +146,8 @@ export const examples = [
         "code": "CS1105 LEC01",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": true
+        "online": true,
+        "location": "ELEARNING SIT"
       }
     ]
   },
@@ -153,7 +166,8 @@ export const examples = [
         "code": "CS1201 LAB02",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-blake-0-780-CS1202LAB01",
@@ -163,7 +177,8 @@ export const examples = [
         "code": "CS1202 LAB01",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-blake-0-1020-CM1301TUT01",
@@ -173,7 +188,8 @@ export const examples = [
         "code": "CM1301 TUT01",
         "weekStart": 2,
         "weekEnd": 16,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-blake-1-480-CS1203LEC01",
@@ -183,7 +199,8 @@ export const examples = [
         "code": "CS1203 LEC01",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": true
+        "online": true,
+        "location": "ELEARNING SIT"
       },
       {
         "id": "demo-blake-1-660-CS1204LAB01",
@@ -193,7 +210,8 @@ export const examples = [
         "code": "CS1204 LAB01",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-blake-1-960-MA1301TUT02",
@@ -203,7 +221,8 @@ export const examples = [
         "code": "MA1301 TUT02",
         "weekStart": 2,
         "weekEnd": 16,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-blake-2-540-CS1205LAB01",
@@ -213,7 +232,8 @@ export const examples = [
         "code": "CS1205 LAB01",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-blake-2-900-CS1206LAB03",
@@ -223,7 +243,8 @@ export const examples = [
         "code": "CS1206 LAB03",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-blake-3-600-CS1202LAB03",
@@ -233,7 +254,8 @@ export const examples = [
         "code": "CS1202 LAB03",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-blake-3-840-CS1201LAB04",
@@ -243,7 +265,8 @@ export const examples = [
         "code": "CS1201 LAB04",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-blake-4-480-CS1204LEC01",
@@ -253,7 +276,8 @@ export const examples = [
         "code": "CS1204 LEC01",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": true
+        "online": true,
+        "location": "ELEARNING SIT"
       },
       {
         "id": "demo-blake-4-720-MA1301TUT01",
@@ -263,7 +287,8 @@ export const examples = [
         "code": "MA1301 TUT01",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-blake-4-960-CM1302TUT01",
@@ -273,7 +298,8 @@ export const examples = [
         "code": "CM1302 TUT01",
         "weekStart": 2,
         "weekEnd": 16,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       }
     ]
   },
@@ -292,7 +318,8 @@ export const examples = [
         "code": "CS1301 LAB03",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-casey-0-720-CS1301LEC01",
@@ -302,7 +329,8 @@ export const examples = [
         "code": "CS1301 LEC01",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": true
+        "online": true,
+        "location": "ELEARNING SIT"
       },
       {
         "id": "demo-casey-0-960-CM1401TUT03",
@@ -312,7 +340,8 @@ export const examples = [
         "code": "CM1401 TUT03",
         "weekStart": 2,
         "weekEnd": 16,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-casey-1-600-CS1302LAB01",
@@ -322,7 +351,8 @@ export const examples = [
         "code": "CS1302 LAB01",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-casey-1-900-CS1303LAB02",
@@ -332,7 +362,8 @@ export const examples = [
         "code": "CS1303 LAB02",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-casey-2-480-CS1304LEC01",
@@ -342,7 +373,8 @@ export const examples = [
         "code": "CS1304 LEC01",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": true
+        "online": true,
+        "location": "ELEARNING SIT"
       },
       {
         "id": "demo-casey-2-720-MA1401TUT01",
@@ -352,7 +384,8 @@ export const examples = [
         "code": "MA1401 TUT01",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-casey-2-840-CS1305LAB01",
@@ -362,7 +395,8 @@ export const examples = [
         "code": "CS1305 LAB01",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-casey-3-540-CS1301LAB04",
@@ -372,7 +406,8 @@ export const examples = [
         "code": "CS1301 LAB04",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-casey-3-780-CM1402TUT01",
@@ -382,7 +417,8 @@ export const examples = [
         "code": "CM1402 TUT01",
         "weekStart": 2,
         "weekEnd": 16,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-casey-4-600-CS1306LAB02",
@@ -392,7 +428,8 @@ export const examples = [
         "code": "CS1306 LAB02",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-casey-4-780-CS1307LAB01",
@@ -402,7 +439,8 @@ export const examples = [
         "code": "CS1307 LAB01",
         "weekStart": 1,
         "weekEnd": 17,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       },
       {
         "id": "demo-casey-4-1020-CM1403TUT01",
@@ -412,7 +450,8 @@ export const examples = [
         "code": "CM1403 TUT01",
         "weekStart": 2,
         "weekEnd": 16,
-        "online": false
+        "online": false,
+        "location": "L.528 SIT"
       }
     ]
   }

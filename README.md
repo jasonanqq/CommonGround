@@ -42,6 +42,17 @@ Want to try it first? Select **Load the 3 example timetables** to compare three 
 | Create and join groups | No | Yes |
 | Reuse timetables across different groups | No | Yes |
 
+### View your own classes
+
+1. Upload a timetable PDF or choose a saved timetable from your library.
+2. Select **My timetable** from the sidebar.
+3. Choose the timetable and teaching week at the top of the section.
+4. Use **Calendar** for a visual Monday–Saturday view, or **Class list** to read lesson details in order.
+5. See each class's code, time, teaching weeks, room/location (when available), and whether it is online.
+6. Select **Edit lessons** to correct class times or room information for a timetable you own.
+
+As a guest you can view every timetable in your current session. When signed in, you can view your saved timetables, including ones not added to the active group, as well as timetables shared with your current group. The selected week is shared with the comparison page. Older saved lessons may not have a room until you edit them or reimport their PDF.
+
 ### Find the right break
 
 You can adjust the comparison without uploading the files again:
@@ -83,7 +94,7 @@ Group owners can manage members, rename groups, reset invitation codes, and dele
 
 ## Supported timetables
 
-CommonGround currently works best with **original, text-based NYP timetable PDFs**. It reads the lessons, times, days, teaching weeks, and online-class information from the PDF.
+CommonGround currently works best with **original, text-based NYP timetable PDFs**. It reads the lessons, times, days, teaching weeks, locations where recognised, and online-class information from the PDF.
 
 If you upload a screenshot, scanned PDF, or a different timetable format, automatic extraction may not work correctly. You can still choose **+ Add a timetable manually** or use **Review** to correct the lessons.
 
