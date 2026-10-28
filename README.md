@@ -41,6 +41,7 @@ Want to try it first? Select **Load the 3 example timetables** to compare three 
 | Save timetables to your account | No | Yes |
 | Create and join groups | No | Yes |
 | Reuse timetables across different groups | No | Yes |
+| Choose an avatar, upload a profile photo and set a display name | No | Yes |
 
 ### View your own classes
 
@@ -79,6 +80,12 @@ You don't need an account to compare schedules. Sign in when you want to keep yo
 4. Confirm your email if prompted, then sign in using your **email and password**.
 
 If you already compared timetables as a guest, you can use **Save to selected group** after signing in to save them to your account.
+
+### Customise your profile
+
+When signed in, click your round profile icon at the top right or **My profile** in the sidebar. You can choose an included avatar, upload a JPG/PNG/WebP photo (up to 2 MB), or revert to initials. Add an optional display name, then select **Save profile**.
+
+Your profile icon is shown in the header, alongside timetables you share, and next to your name in group members. Uploaded photos use private Supabase Storage; you and members of groups you share can view them with temporary image links. Guests do not need a profile.
 
 ### Create a group
 
@@ -149,3 +156,13 @@ npm test
 ## Feedback
 
 Found an issue or have a feature suggestion? [Open an issue](https://github.com/jasonanqq/CommonGround/issues) on GitHub.
+
+## Updating an existing Supabase project for profile pictures
+
+Before deploying version 5, open **Supabase → SQL Editor → New query**, copy all of `migrations/2026-10-28-profile-avatars.sql` and click **Run**. This adds the optional profile fields and creates the private `avatars` Storage bucket with its access policies. **Do not rerun the original `schema.sql` on your existing database.** Existing accounts and saved schedules remain in place.
+
+If you are creating a brand new Supabase project, running the full `schema.sql` includes the avatar setup already. Do not run both scripts on a new database.
+
+After the SQL succeeds, replace your updated website files on GitHub and deploy to Vercel. Keep your existing `config.js` if the connection is working. Public Supabase publishable keys belong in frontend code; never include a service-role or secret key.
+
+Uploaded avatar image access is restricted to the owner and members of their shared groups through Supabase RLS. Signed URLs expire after one hour, though a previously generated link remains usable until it expires even if group membership changes.

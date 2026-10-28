@@ -25,7 +25,7 @@ export async function loadGroupTimetables(db, groupId) {
   return (rows||[]).filter(row=>row.timetables).map(row=>fromRecord(row.timetables));
 }
 export async function loadMembers(db,groupId) {
-  const rows=must(await db.from('group_members').select('user_id,role,profiles(username)').eq('group_id',groupId).order('created_at',{ascending:true}));
+  const rows=must(await db.from('group_members').select('user_id,role,profiles(username,display_name,avatar_preset,avatar_path)').eq('group_id',groupId).order('created_at',{ascending:true}));
   return rows||[];
 }
 export function fromRecord(r) {return {id:r.id,name:r.name,fullName:r.full_name||'',course:r.course||'',source:r.source||'',events:r.events||[],ownerId:r.owner_id};}

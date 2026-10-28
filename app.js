@@ -1,5 +1,6 @@
 import {DAYS,SHORT_DAYS,START_DAY,END_DAY,formatTime,shortTime,duration,parseHHMM,newId,parseNypPages,commonWindows,occupiedRuns,overlapsCSV,personalWeekEvents} from './lib.js';
 import {examples} from './examples.js';
+import {PRESET_AVATARS,avatarPreset,profileLabel,validateAvatarFile,avatarExtension} from './avatars.js';
 import {createCloudClient,must,loadGroups,loadOwnTimetables,loadGroupTimetables,loadMembers,addTimetable,updateTimetable,setGroupTimetable,createGroup,joinGroup,rotateInvite} from './cloud.js';
 
 const $=id=>document.getElementById(id);
@@ -19,6 +20,8 @@ let settings={week:8,min:60,mode:'between',onlineBusy:true,sort:'day'};
 try{settings={...settings,...JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}')};}catch{}
 let personalSelectedId=null,personalMode='grid';
 let editingId=null,editable=[],selectedKey=null,toastTimer=null,uploadBusy=false,authMode='signin',sessionVersion=0,pendingJoinCode=null,recoveryActive=false;
+let pendingAvatar={kind:'initials',preset:'initials',file:null},avatarPreviewURL=null;
+const avatarURLCache=new Map();
 const getGroup=()=>groups.find(g=>g.id===activeGroupId);
 const amOwner=()=>getGroup()?.owner_id===user?.id;
 const getOpts=()=>({week:+settings.week,min:+settings.min,mode:settings.mode,onlineBusy:settings.onlineBusy,start:START_DAY,end:END_DAY});
@@ -30,10 +33,107 @@ function notice(message,ok=false){const n=$('uploadNotice');n.hidden=false;n.cla
 function clearNotice(){$('uploadNotice').hidden=true;}
 function displayError(error){notify(error?.message||String(error||'Something went wrong.'));console.error(error);}
 async function safeAction(fn){try{await fn();}catch(e){displayError(e);}}
-function memberName(id){return members.find(m=>m.user_id===id)?.profiles?.username|| (id===user?.id?profile?.username:'Group member') ||'Group member';}
+function memberName(id){return profileLabel(members.find(m=>m.user_id===id)?.profiles || (id===user?.id?profile:null),'Group member');}
 function inviteURL(code){return `${location.origin}${location.pathname}?join=${encodeURIComponent(code)}`;}
 async function copyText(value){try{await navigator.clipboard.writeText(value);notify('Copied to clipboard.');}catch{notify('Clipboard unavailable. Select and copy the text manually.');}}
 
+function avatarInitials(label){return String(label||'CG').trim().split(/\s+/).slice(0,2).map(part=>part[0]||'').join('').toUpperCase()||'CG';}
+async function signedAvatarURL(path){
+  if(!db||!path)return null;
+  const cached=avatarURLCache.get(path);
+  if(cached && cached.until>Date.now())return cached.url;
+  const {data,error}=await db.storage.from('avatars').createSignedUrl(path,3600);
+  if(error)throw error;
+  avatarURLCache.set(path,{url:data.signedUrl,until:Date.now()+50*60*1000});
+  return data.signedUrl;
+}
+async function paintAvatar(node,row,initials){
+  if(!node)return;
+  const fallback=avatarInitials(initials||profileLabel(row,'CG'));
+  const seq=String((Number(node.dataset.avatarSeq)||0)+1);node.dataset.avatarSeq=seq;
+  node.replaceChildren(document.createTextNode(fallback));
+  const preset=avatarPreset(row?.avatar_preset);
+  if(preset!=='initials'){
+    const icon=document.createElement('img');icon.src=`./avatars/${preset}.svg`;icon.alt='';icon.loading='lazy';node.replaceChildren(icon);
+  }
+  if(row?.avatar_path){
+    const path=row.avatar_path;
+    try{
+      const url=await signedAvatarURL(path);
+      if(!node.isConnected || node.dataset.avatarSeq!==seq || row.avatar_path!==path)return;
+      const img=document.createElement('img');img.src=url;img.alt='';img.loading='lazy';img.referrerPolicy='no-referrer';node.replaceChildren(img);
+    }catch(e){console.warn('Profile image unavailable',e.message);}
+  }
+}
+function refreshHeaderProfile(){
+  $('accountLabel').textContent=profileLabel(profile,user?.email||'Signed in');
+  $('userAvatar').setAttribute('aria-label',`Edit profile for ${profileLabel(profile,'your account')}`);
+  void paintAvatar($('userAvatar'),profile,avatarInitials(profileLabel(profile)));
+}
+function clearAvatarPreview(){if(avatarPreviewURL){URL.revokeObjectURL(avatarPreviewURL);avatarPreviewURL=null;}}
+function renderProfilePreview(){
+  const node=$('profilePreviewAvatar');
+  if(pendingAvatar.kind==='file' && pendingAvatar.file){
+    clearAvatarPreview();node.dataset.avatarSeq=String((Number(node.dataset.avatarSeq)||0)+1);avatarPreviewURL=URL.createObjectURL(pendingAvatar.file);
+    const img=document.createElement('img');img.src=avatarPreviewURL;img.alt='';node.replaceChildren(img);
+  }else if(pendingAvatar.kind==='preset'){
+    clearAvatarPreview();void paintAvatar(node,{avatar_preset:pendingAvatar.preset},avatarInitials(profileLabel(profile)));
+  }else{
+    clearAvatarPreview();void paintAvatar(node,profile,avatarInitials(profileLabel(profile)));
+  }
+  $('avatarPresetGrid').querySelectorAll('[data-preset]').forEach(button=>{
+    const chosen=pendingAvatar.kind==='preset' && button.dataset.preset===pendingAvatar.preset;
+    button.classList.toggle('chosen',chosen);
+    button.setAttribute('aria-pressed',String(chosen));
+  });
+  $('profileRemovePhoto').disabled=!(profile?.avatar_path||pendingAvatar.kind==='file');
+}
+function closeProfile(){clearAvatarPreview();$('profileDialog').close();$('profileImageFile').value='';}
+function openProfile(){
+  if(!user){openSignIn();return;}
+  $('profileUsername').textContent=`@${profile?.username||'member'}`;
+  $('profileDisplayName').value=profile?.display_name||'';
+  $('profileMessage').textContent='';
+  pendingAvatar={kind:'existing',preset:avatarPreset(profile?.avatar_preset),file:null};
+  $('avatarPresetGrid').innerHTML=PRESET_AVATARS.map(a=>`<button type="button" class="avatar-preset" data-preset="${a.id}" aria-label="Use ${a.label} avatar" aria-pressed="false"><span class="avatar-preset-picture">${a.id==='initials'?escapeHTML(avatarInitials(profileLabel(profile))):`<img src="./avatars/${a.id}.svg" alt="" />`}</span><span>${a.label}</span></button>`).join('');
+  $('avatarPresetGrid').querySelectorAll('[data-preset]').forEach(button=>button.addEventListener('click',()=>{
+    pendingAvatar={kind:'preset',preset:button.dataset.preset,file:null};renderProfilePreview();
+  }));
+  renderProfilePreview();
+  $('profileDialog').showModal();
+}
+async function saveProfile(event){
+  event.preventDefault();if(!db||!user)return;
+  const display_name=$('profileDisplayName').value.trim();
+  if(display_name.length>48){$('profileMessage').textContent='Display name must be 48 characters or fewer.';return;}
+  const button=$('profileSave');button.disabled=true;$('profileMessage').textContent='Saving profile…';
+  let newPath=null;
+  try{
+    let avatar_preset=avatarPreset(profile?.avatar_preset);
+    let avatar_path=profile?.avatar_path||null;
+    if(pendingAvatar.kind==='preset'){avatar_preset=pendingAvatar.preset;avatar_path=null;}
+    if(pendingAvatar.kind==='file'){
+      const file=pendingAvatar.file;
+      validateAvatarFile(file);
+      newPath=`${user.id}/${crypto.randomUUID()}.${avatarExtension(file.type)}`;
+      const {error}=await db.storage.from('avatars').upload(newPath,file,{contentType:file.type,cacheControl:'3600',upsert:false});
+      if(error)throw error;
+      avatar_preset='initials';avatar_path=newPath;
+    }
+    const row=must(await db.from('profiles').update({display_name,avatar_preset,avatar_path}).eq('id',user.id)
+      .select('username,display_name,avatar_preset,avatar_path').single());
+    const old=profile?.avatar_path;
+    profile=row;newPath=null;
+    if(old && old!==avatar_path){avatarURLCache.delete(old);const {error}=await db.storage.from('avatars').remove([old]);if(error)console.warn('Old avatar cleanup failed',error.message);}
+    refreshHeaderProfile();
+    if(activeGroupId){try{await reloadGroup();}catch(error){console.warn('Group refresh failed',error.message);}}
+    closeProfile();notify('Profile updated.');
+  }catch(error){
+    if(newPath){await db.storage.from('avatars').remove([newPath]);}
+    $('profileMessage').textContent=error.message||'Could not save your profile.';
+    displayError(error);
+  }finally{button.disabled=false;}
+}
 async function reloadGroup(){
   if (!db||!user||!activeGroupId){schedules=[];members=[];render();return;}
   [schedules,members]=await Promise.all([loadGroupTimetables(db,activeGroupId),loadMembers(db,activeGroupId)]);
@@ -53,16 +153,16 @@ async function handleSession(session){
   if (!session?.user){
     user=null;profile=null;groups=[];library=[];schedules=guestSchedules;members=[];activeGroupId=null;
     closeSignIn();$('logoutButton').hidden=true;$('loginButton').hidden=false;
-    $('accountLabel').textContent='Guest';$('userAvatar').textContent='GU';render();return;
+    $('accountLabel').textContent='Guest';$('userAvatar').textContent='GU';$('userAvatar').setAttribute('aria-label','Sign in to customise your profile');$('profileShortcut').hidden=true;render();return;
   }
   const newUser=session.user;
   user=newUser;
   try{
-    const profileRow=must(await db.from('profiles').select('username').eq('id',newUser.id).single());
+    const profileRow=must(await db.from('profiles').select('username,display_name,avatar_preset,avatar_path').eq('id',newUser.id).single());
     if(run!==sessionVersion)return;
     profile=profileRow;
-    $('accountLabel').textContent=profile?.username||newUser.email||'Signed in';
-    $('userAvatar').textContent=(profile?.username||'CG').slice(0,2).toUpperCase();
+    refreshHeaderProfile();
+    $('profileShortcut').hidden=false;
     $('logoutButton').hidden=false;$('loginButton').hidden=true;
     await reloadWorkspace();
     if(run!==sessionVersion)return;
@@ -149,12 +249,13 @@ function renderRoster(){
     const initials=p.name.trim().split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase();
     const canRemove=!user||amOwner()||p.ownerId===user?.id;
     const canEdit=!user||p.ownerId===user?.id;
-    return `<div class="person-card">${canRemove?`<button title="Remove ${escapeHTML(p.name)} from this group" aria-label="Remove ${escapeHTML(p.name)} from this group" class="remove-person" data-remove="${escapeHTML(p.id)}" type="button">×</button>`:''}<div class="person-top"><div class="person-avatar" style="background:${bg};color:${fg}">${escapeHTML(initials)}</div><div style="min-width:0"><div class="person-name" title="${escapeHTML(p.fullName||p.name)}">${escapeHTML(p.name)}</div><div class="person-sub">${p.events.length} lesson blocks</div><div class="person-owner">${user?'by '+escapeHTML(memberName(p.ownerId)):'Guest · not saved'}</div></div></div><div class="person-card-footer"><div class="person-status" style="${p.events.length?'':'color:#c88a3e'}">${p.events.length?'Ready to compare':'Add lessons first'}</div><span class="person-links"><button class="view-person" data-view="${escapeHTML(p.id)}" type="button">View classes</button>${canEdit?`<button class="edit-person" data-edit="${escapeHTML(p.id)}" type="button">Review ↗</button>`:''}</span></div></div>`;
+    return `<div class="person-card">${canRemove?`<button title="Remove ${escapeHTML(p.name)} from this group" aria-label="Remove ${escapeHTML(p.name)} from this group" class="remove-person" data-remove="${escapeHTML(p.id)}" type="button">×</button>`:''}<div class="person-top"><div class="person-avatar" data-owner-avatar="${escapeHTML(p.id)}" style="background:${bg};color:${fg}">${escapeHTML(initials)}</div><div style="min-width:0"><div class="person-name" title="${escapeHTML(p.fullName||p.name)}">${escapeHTML(p.name)}</div><div class="person-sub">${p.events.length} lesson blocks</div><div class="person-owner">${user?'by '+escapeHTML(memberName(p.ownerId)):'Guest · not saved'}</div></div></div><div class="person-card-footer"><div class="person-status" style="${p.events.length?'':'color:#c88a3e'}">${p.events.length?'Ready to compare':'Add lessons first'}</div><span class="person-links"><button class="view-person" data-view="${escapeHTML(p.id)}" type="button">View classes</button>${canEdit?`<button class="edit-person" data-edit="${escapeHTML(p.id)}" type="button">Review ↗</button>`:''}</span></div></div>`;
   }).join('');
   const uploader=`<button id="dropCard" class="drop-card" type="button" ${user&&!activeGroupId?'disabled':''}><span class="plus-icon">+</span><strong>Add timetable PDF</strong><small>Click to browse or drop your file here</small></button>`;
   let extras='';
   if(!schedules.length)extras=`<div class="empty-hint" style="grid-column:1/-1">${!user?'Upload one or more NYP timetable PDFs to compare for free. ':activeGroupId?'No timetables selected for this group. '+(library.length?'Use the library checkboxes above, or ':''):'Create or join a group first. '}${!user||activeGroupId?'<button class="text-button" id="tryDemoInline" type="button" style="color:#6b5de4;padding:0">Load the 3 example timetables ↗</button>':''}</div>`;
   $('rosterGrid').innerHTML=cards+uploader+extras;
+  if(user)for(const s of schedules){const owner=members.find(m=>m.user_id===s.ownerId)?.profiles||(s.ownerId===user.id?profile:null);if(owner)void paintAvatar($('rosterGrid').querySelector(`[data-owner-avatar="${CSS.escape(s.id)}"]`),owner,avatarInitials(memberName(s.ownerId)));}
   $('dropCard').addEventListener('click',()=>$('pdfInput').click());
   $('tryDemoInline')?.addEventListener('click',()=>safeAction(loadDemo));
   document.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openEditor(b.dataset.edit)));
@@ -458,8 +559,9 @@ function showInvite(){
 }
 function showMembers(){
   if(!getGroup())return;
-  const rows=members.map(m=>`<div class="member-row"><div><strong>${escapeHTML(m.profiles?.username||'Member')}</strong><small>${m.role==='owner'?'Group owner':'Member'}</small></div>${amOwner()&&m.user_id!==user.id?`<button data-kick="${escapeHTML(m.user_id)}" type="button">Remove</button>`:''}</div>`).join('');
+  const rows=members.map(m=>`<div class="member-row"><div class="member-identity"><span class="member-avatar" data-member-avatar="${escapeHTML(m.user_id)}">${escapeHTML(avatarInitials(memberName(m.user_id)))}</span><span><strong>${escapeHTML(profileLabel(m.profiles,'Member'))}</strong><small>@${escapeHTML(m.profiles?.username||'member')} · ${m.role==='owner'?'Group owner':'Member'}</small></span></div>${amOwner()&&m.user_id!==user.id?`<button data-kick="${escapeHTML(m.user_id)}" type="button">Remove</button>`:''}</div>`).join('');
   modal('Group members',`<p class="simple-description">${escapeHTML(getGroup().name)} · ${members.length} member(s)</p>${rows}<div class="simple-actions">${!amOwner()?'<button id="leaveGroupButton" class="danger-button" type="button">Leave group</button>':''}</div>`);
+  for(const m of members)void paintAvatar($('groupDialogBody').querySelector(`[data-member-avatar="${CSS.escape(m.user_id)}"]`),m.profiles,avatarInitials(memberName(m.user_id)));
   $('groupDialogBody').querySelectorAll('[data-kick]').forEach(b=>b.addEventListener('click',()=>safeAction(async()=>{
     const m=members.find(m=>m.user_id===b.dataset.kick);
     if(!m||!confirm(`Remove ${m.profiles?.username||'this member'} from the group?`))return;
@@ -538,6 +640,15 @@ function init(){
   $('groupSettingsButton').addEventListener('click',showGroupSettings);
   $('closeGroupDialog').addEventListener('click',()=>$('groupDialog').close());
   $('groupDialog').addEventListener('click',e=>{if(e.target===$('groupDialog'))$('groupDialog').close()});
+  $('userAvatar').addEventListener('click',openProfile);
+  $('profileShortcut').addEventListener('click',openProfile);
+  $('closeProfileDialog').addEventListener('click',closeProfile);
+  $('profileCancel').addEventListener('click',closeProfile);
+  $('profileDialog').addEventListener('click',e=>{if(e.target===$('profileDialog'))closeProfile();});
+  $('profileDialog').addEventListener('close',clearAvatarPreview);
+  $('profileForm').addEventListener('submit',event=>{void saveProfile(event);});
+  $('profileImageFile').addEventListener('change',e=>{const file=e.target.files?.[0];if(!file)return;try{validateAvatarFile(file);pendingAvatar={kind:'file',file,preset:'initials'};$('profileMessage').textContent='';renderProfilePreview();}catch(error){$('profileMessage').textContent=error.message;e.target.value='';}});
+  $('profileRemovePhoto').addEventListener('click',()=>{pendingAvatar={kind:'preset',preset:'initials',file:null};$('profileImageFile').value='';renderProfilePreview();});
   $('logoutButton').addEventListener('click',()=>safeAction(async()=>{must(await db.auth.signOut());await handleSession(null);notify('Signed out.');}));
   $('tabSignIn').addEventListener('click',()=>setAuthMode('signin'));
   $('tabSignUp').addEventListener('click',()=>setAuthMode('signup'));

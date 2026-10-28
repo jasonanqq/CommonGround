@@ -27,7 +27,7 @@
         <a href="#groups" class="nav-link"><span class="nav-symbol">♧</span> Groups</a>
         <a href="#schedules" class="nav-link"><span class="nav-symbol">▣</span> Timetables <span id="navCount" class="nav-count">0</span></a>
         <a href="#my-timetable" class="nav-link"><span class="nav-symbol">▤</span> My timetable</a>
-        <a href="#results" class="nav-link"><span class="nav-symbol">◷</span> Common breaks</a>
+        <a href="#results" class="nav-link"><span class="nav-symbol">◷</span> Common breaks</a><button type="button" class="nav-link profile-shortcut" id="profileShortcut" hidden><span class="nav-symbol">◉</span> My profile</button>
       </nav>
       <div class="sidebar-label spacer-label">QUICK START</div>
       <button class="demo-nav" id="demoButton" type="button"><span class="demo-icon">✦</span><span><strong>Try example schedules</strong><small>Avery, Blake & Casey</small></span><span class="arrow-icon">↗</span></button>
@@ -35,7 +35,7 @@
     </aside>
 
     <main class="main-content" id="overview">
-      <header class="topbar"><div class="crumb">Workspace <span>/</span> Schedule comparison</div><div class="topbar-right"><span class="online-dot"></span><span id="accountLabel">Guest</span><button id="loginButton" class="topbar-signout" type="button">Sign in / Save</button><button id="logoutButton" class="topbar-signout" type="button" hidden>Sign out</button><div class="user-avatar" id="userAvatar">CG</div></div></header>
+      <header class="topbar"><div class="crumb">Workspace <span>/</span> Schedule comparison</div><div class="topbar-right"><span class="online-dot"></span><span id="accountLabel">Guest</span><button id="loginButton" class="topbar-signout" type="button">Sign in / Save</button><button id="logoutButton" class="topbar-signout" type="button" hidden>Sign out</button><button class="user-avatar" id="userAvatar" type="button" aria-label="Open profile settings" title="Profile settings">GU</button></div></header>
       <div class="content-inner">
         <div class="hero">
           <div class="hero-copy"><div class="eyebrow"><span class="eyebrow-star">✳</span> THE GROUP PLANNER</div><h1>Less planning.<br><em>More hanging out.</em></h1><p>Upload PDFs and find shared breaks instantly. No login needed to compare. Sign in only when you want to save your timetables or manage groups.</p><button class="hero-cta" id="heroUpload" type="button">Add a timetable <span>↗</span></button></div>
@@ -129,6 +129,20 @@
       <p class="auth-fineprint">Passwords are handled by Supabase Auth. Only extracted lesson data is saved; original PDF files remain on your device.</p>
     </div>
   </div>
+  <dialog id="profileDialog" class="simple-dialog profile-dialog" aria-label="Profile settings">
+    <div class="dialog-inner">
+      <div class="simple-dialog-header"><h2>My profile</h2><button type="button" id="closeProfileDialog" class="icon-close" aria-label="Close profile settings">×</button></div>
+      <div class="profile-intro"><div class="profile-large-avatar" id="profilePreviewAvatar">CG</div><div><strong id="profileUsername">@username</strong><small>Choose how you appear to your groups.</small></div></div>
+      <form id="profileForm" class="profile-form">
+        <label class="simple-field">Display name <input id="profileDisplayName" type="text" maxlength="48" placeholder="How friends will see your name" autocomplete="nickname" /><small>Your username stays the same.</small></label>
+        <div><div class="profile-field-title">Choose an avatar</div><div id="avatarPresetGrid" class="avatar-preset-grid" role="group" aria-label="Preset profile pictures"></div></div>
+        <div class="profile-image-actions"><label class="soft-button profile-upload-label" for="profileImageFile">Upload photo <span>↗</span></label><input id="profileImageFile" type="file" accept="image/jpeg,image/png,image/webp" hidden /><button id="profileRemovePhoto" class="text-button" type="button">Remove photo</button></div>
+        <p class="profile-help">PNG, JPG or WebP · Max 2 MB. Only you and people in your shared groups can load your uploaded photo. Presets are included with the website.</p>
+        <p class="profile-message" id="profileMessage" role="status"></p>
+        <div class="simple-actions profile-save-actions"><button id="profileCancel" type="button" class="soft-button">Cancel</button><button id="profileSave" type="submit" class="primary-button">Save profile →</button></div>
+      </form>
+    </div>
+  </dialog>
   <dialog id="groupDialog" class="simple-dialog" aria-label="Manage group"><div class="dialog-inner"><div class="simple-dialog-header"><h2 id="groupDialogTitle">Manage group</h2><button type="button" id="closeGroupDialog" class="icon-close" aria-label="Close">×</button></div><div id="groupDialogBody"></div></div></dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 </body>
