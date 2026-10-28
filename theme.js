@@ -2,7 +2,7 @@
   const KEY = 'commonground_theme';
   const modes = ['light', 'dark', 'system'];
   const systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
-  let mode = 'light';
+  let mode = 'system';
 
   try {
     const saved = localStorage.getItem(KEY);
